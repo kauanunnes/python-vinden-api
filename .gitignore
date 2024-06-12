@@ -33,4 +33,6 @@ include/
 # Ignore system files
 .DS_Store
 Thumbs.db
-pyvenv.cfg
+
+
+*.cfg

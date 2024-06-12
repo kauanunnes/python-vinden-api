@@ -5,6 +5,7 @@ from sqlalchemy.orm import sessionmaker
 from json import dumps
 import os
 import sys
+import enum
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -61,8 +62,17 @@ class UserById(Resource):
     
 class People(Resource):
     def get(self):
-      people = session.query(Person).all()
-      return jsonify([person.to_dict() for person in people])
+        people = session.query(User, Person).join(Person, User.id == Person.user_id).all()
+        people = [
+            {**t1.__dict__, **t2.__dict__}
+            for t1, t2 in people
+            if hasattr(t1, '__dict__') and hasattr(t2, '__dict__')
+        ]
+        for data in people:
+            data.pop('_sa_instance_state', None)
+            data.pop('__sa_instance_state', None)
+            data.pop('password', None)
+        return jsonify(people)
     
     def post(self):
         name = request.json['name']
@@ -92,8 +102,19 @@ class People(Resource):
     
 class Companies(Resource):
     def get(self):
-      companies = session.query(Company).all()
-      return jsonify([company.to_dict() for company in companies])
+        companies = session.query(User, Company).join(Company, User.id == Company.user_id).all()
+        companies = [
+            {**t1.__dict__, **t2.__dict__}
+            for t1, t2 in companies
+            if hasattr(t1, '__dict__') and hasattr(t2, '__dict__')
+        ]
+        for data in companies:
+            data.pop('_sa_instance_state', None)
+            data.pop('__sa_instance_state', None)
+            data.pop('password', None)
+            data['role'] = data['role'].value
+    
+        return jsonify(companies)
     
     def post(self):
       name = request.json['name']
